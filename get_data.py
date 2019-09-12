@@ -3,7 +3,7 @@ import sys
 import tweepy
 from cred import *
 
-
+#get twitter api using credentials in cred.py
 def get_api():
 
     auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
@@ -21,17 +21,20 @@ def get_api():
 
 
 
-
+#get tweets from twitter users using a list of their screen names
 def get_tweets(twitter_api, username):
 
+    #get 100 tweets per user
     number_of_tweets = 100
     tweet_list = []
 
+    #make sure not to include retweets
     for tweet in tweepy.Cursor(twitter_api.user_timeline, tweet_mode='extended', include_rts=False, screen_name=username).items(number_of_tweets):
         tweet_list.append([tweet.full_text])
 
     output = 'tweet_data.csv'
 
+    #write tweets onto a csv file
     with open(output, 'a') as file:
 
         writer = csv.writer(file, delimiter=',')
@@ -40,17 +43,16 @@ def get_tweets(twitter_api, username):
 
 def main():
 
-
+    #supply users here
     usernames=[]
 
+    #get api
     api = get_api()
 
+    #get tweets
     for user in usernames:
-
         print('Currently on ' + user)
         get_tweets(api, user)
-
-
 
 
 if __name__ == "__main__":
