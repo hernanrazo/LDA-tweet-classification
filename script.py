@@ -1,6 +1,5 @@
 import re
 import csv
-import pandas as pd
 import gensim
 import nltk
 from nltk.stem import WordNetLemmatizer, SnowballStemmer
@@ -10,12 +9,10 @@ from nltk.corpus import stopwords
 stemmer = SnowballStemmer('english')
 stop_words = nltk.corpus.stopwords.words('english')
 custom = ['?','(', ')', '.', '[', ']','!', '...',
-        ';',"`","'",'"',',', ':', '~' , '/', '//', '\\'] 
+        ';', "`", "'", '"',',', ':', '*', '~' , '/', '//', '\\']
 stop_words.extend(custom)
 
-
 def clean_data(raw_data):
-
 
     remove_mentions = re.sub(r'@[A-Za-z0-9]+', '', raw_data)
     remove_links = re.sub('https?://[A-Za-z0-9./]+', '', remove_mentions, flags=re.MULTILINE)
@@ -31,23 +28,30 @@ def clean_data(raw_data):
 
 def main():
 
-    total =[]
-    f = open('tweet_data.csv')
-    csv_f = csv.reader(f)
-    
-    for row in csv_f:
+    count = 0
+    tweet_list =[]
+    list_list = []
+    csv_file = open('tweet_data.csv')
+    data = csv.reader(csv_file)
+
+    for row in data:
 
         string_row = str(row).strip('[]')
         tweets = clean_data(string_row)
 
-        #print(tweets)
-
         for word in tweets:
-            total.append(word)
+            tweet_list.append(word)
 
-    print(total)
+    list_list.append(tweet_list)
+    dictionary = gensim.corpora.Dictionary(list_list)
+
+    for k, v in dictionary.iteritems():
+        print(k, v)
+        count += 1
+
+    dictionary.filter_extremes(no_below=15, no_above=0.1, keep_n=100000)
+    print(dictionary)
 
 if __name__ == "__main__":
 
     main()
-
