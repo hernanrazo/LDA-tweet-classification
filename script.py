@@ -44,13 +44,19 @@ def main():
 
     list_list.append(tweet_list)
     dictionary = gensim.corpora.Dictionary(list_list)
-
-    for k, v in dictionary.iteritems():
-        print(k, v)
-        count += 1
-
     dictionary.filter_extremes(no_below=15, no_above=0.1, keep_n=100000)
-    print(dictionary)
+    bow_corpus = [dictionary.doc2bow(i) for i in list_list]
+
+
+#actual training???
+    lda_model = gensim.models.LdaMulticore(bow_corpus, num_topics=8, id2word=dictionary, passes=10, workers=2)
+
+    for idx, topic in lda_model.print_topics(-1):
+        print("Topic: {} \nWords: {}".format(idx, topic))
+        print('\n')
+
+
+
 
 if __name__ == "__main__":
 
