@@ -1,5 +1,4 @@
-L
-A Tweet Classification
+LDA Tweet Classification
 ===
 
 Description
