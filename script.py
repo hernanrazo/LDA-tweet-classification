@@ -40,7 +40,7 @@ def main():
     csv_file = open('tweet_data.csv')
     data = csv.reader(csv_file)
 
-    #gather all tweets and apply clean)data() function
+    #gather all tweets and apply clean_data() function
     for row in data:
         string_row = str(row).strip('[]')
         tweets = clean_data(string_row)
