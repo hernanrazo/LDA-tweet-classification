@@ -1,4 +1,4 @@
-LDA Tweer Classification
+LDA Tweet Classification
 ===
 
 Description
@@ -24,4 +24,3 @@ Sources and Helpful Links
 https://en.wikipedia.org/wiki/Latent_Dirichlet_allocation  
 https://towardsdatascience.com/nlp-extracting-the-main-topics-from-your-dataset-using-lda-in-minutes-21486f5aa925  
 https://github.com/priya-dwivedi/Deep-Learning/blob/master/topic_modeling/LDA_Newsgroup.ipynb  
-
