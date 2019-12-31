@@ -1,69 +1,87 @@
-import re
+import pickle
 import csv
+import logging
+import warnings
 import gensim
 import nltk
-from nltk.stem import WordNetLemmatizer, SnowballStemmer
-from nltk.tokenize import TweetTokenizer
 from nltk.corpus import stopwords
 
 #set stopwords
 stop_words = nltk.corpus.stopwords.words('english')
-custom = ['?','(', ')', '.', '[', ']','!', '...',
-        ';', "`", "'", '"',',', ':', '*', '~' , '/', '//', '\\']
+custom = ['?','(', ')', '.', '[', ']','!', '...', '-', '@', '->','https',
+        ';', "`", "'", '"',',', ':', '*', '~' , '/', '//', '\\', '&', 'n', ':\\']
 stop_words.extend(custom)
 
-#clean dataset by removing twitter mentions, links, and emojis
-#set all letters to lowercase
-#remove stopwords, tokenize, and lemmatize tweets
-def clean_data(raw_data):
 
-    remove_mentions = re.sub(r'@[A-Za-z0-9]+', '', raw_data)
-    remove_links = re.sub('https?://[A-Za-z0-9./]+', '', remove_mentions, flags=re.MULTILINE)
-    remove_bitly_links = re.sub(r'bit.ly/\S+', '', remove_links)
-    remove_non_ascii = re.sub(r'[^\x00-\x7F]+',' ', remove_bitly_links)
-    set_lowercase = remove_non_ascii.lower()
-    tokenized = TweetTokenizer().tokenize(set_lowercase)
-    remove_stopwords = [words for words in tokenized if not words in stop_words]
-    lemmatized = [WordNetLemmatizer().lemmatize(word) for word in remove_stopwords]
+#process csv content to a list 
+def csv_to_words(raw_data):
+    for row in raw_data:
+        yield(gensim.utils.simple_preprocess(str(row), deacc=True))
 
-    return lemmatized
+
+#remove stopwords
+def remove_stopwords(processed_data): 
+    return [[words for words in gensim.utils.simple_preprocess(str(doc)) if not words in stop_words] for doc in processed_data]
+
+
+#convert words into bigrams
+def get_bigram(words, bi_min=15, tri_min=10):
+    bigram = gensim.models.Phrases(words, min_count=bi_min)
+    bigram_mod = gensim.models.phrases.Phraser(bigram)
+    return bigram_mod
 
 
 def main():
-
-    #initialize variables and lists
-    count = 0
-    tweet_list =[]
-    list_list = []
-
-    #access csv file and read out data
+    #set vars, logging, and open csv file
+    logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
+    tweet_list = []
+    print('Opening file...')
     csv_file = open('tweet_data.csv')
     data = csv.reader(csv_file)
 
-    #gather all tweets and apply clean_data() function
-    for row in data:
-        string_row = str(row).strip('[]')
-        tweets = clean_data(string_row)
+    print('Cleaning data...')
+    #gather all tweets and apply the clean_data() and get_bigram functions
+    processed_tweets = list(csv_to_words(data))
+    cleaned_tweets = remove_stopwords(processed_tweets)
+    bigrams= get_bigram(cleaned_tweets)
+    bigram = [bigrams[tweet] for tweet in cleaned_tweets]
+    id2word = gensim.corpora.Dictionary(bigram)
+    id2word.compactify()
+    corpus = [id2word.doc2bow(tweets) for tweets in bigram]
 
-        for word in tweets:
-            tweet_list.append(word)
-
-    #place into one giant list
-    list_list.append(tweet_list)
-
-    #place all text into a bag of words model
-    dictionary = gensim.corpora.Dictionary(list_list)
-
-    #run dictionary into a corpus to get frequency
-    bow_corpus = [dictionary.doc2bow(i) for i in list_list]
+    print('Training model...')
+    print('\n')
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore')
+        lda_model = gensim.models.ldamulticore.LdaMulticore(corpus=corpus, num_topics=15, id2word=id2word, chunksize=100, workers=1, passes=50, eval_every=1, per_word_topics=True)
 
 
-    #train model
-    lda_model = gensim.models.LdaMulticore(bow_corpus, num_topics=4, id2word=dictionary, passes=10, workers=2)
+    #print list of topics 
+    print('\n')
+    print('Geting topics...')
+    lda_model.print_topics(15, num_words=15)[:15]
+    print('\n')
 
-    for idx, topic in lda_model.print_topics(-1):
-        print("Topic: {} \nWords: {}".format(idx, topic))
-        print('\n')
+
+    #save everything
+    print('Saving everything...')
+    bigram_save = open('train_bigram.pkl', 'wb')
+    pickle.dump(bigram, bigram_save)
+    bigram_out.close()
+
+    id2word_save = open('train_id2word.pkl', 'wb')
+    pickle.dump(id2word, id2word_save)
+    id2word_out.close()
+
+    corpus_save = open('train_corpus.pkl', 'wb')
+    pickle.dump(corpus, corpus_save)
+    corpus_out.close()
+
+    model_save = open('lda_model.model', 'wb')
+    pickle.dump(lda_model, model_save)
+    model_out.close()
+    print('Done')
 
 if __name__ == "__main__":
     main()
+
