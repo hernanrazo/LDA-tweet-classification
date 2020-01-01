@@ -40,7 +40,7 @@ def main():
     data = csv.reader(csv_file)
 
     print('Cleaning data...')
-    #gather all tweets and apply the clean_data() and get_bigram functions
+    #gather all tweets and apply the clean_data() and get_bigram() functions
     processed_tweets = list(csv_to_words(data))
     cleaned_tweets = remove_stopwords(processed_tweets)
     bigrams= get_bigram(cleaned_tweets)
@@ -53,7 +53,7 @@ def main():
     print('\n')
     with warnings.catch_warnings():
         warnings.simplefilter('ignore')
-        lda_model = gensim.models.ldamulticore.LdaMulticore(corpus=corpus, num_topics=15, id2word=id2word, chunksize=100, workers=1, passes=50, eval_every=1, per_word_topics=True)
+        lda_model = gensim.models.ldamulticore.LdaMulticore(corpus=corpus, num_topics=10, id2word=id2word, chunksize=100, workers=2, passes=50, eval_every=1, per_word_topics=True)
 
 
     #print list of topics 
@@ -84,4 +84,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
