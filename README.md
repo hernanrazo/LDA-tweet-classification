@@ -15,7 +15,7 @@ The `train_model.py` file's code in this repo was adapted from [this repo by Mar
 Code Explanation
 ---
 
-The `get_data.py` file is a script that can be used to create a dataset by retrieve tweets from various twitter users. For this specific example, I loaded my twitter API credentials onto a seperate file called `cred.py`. Custom twitter credentials will be needed if you decide to run this code for your purposes. Data is aggregated onto a .csv file. 
+The `get_data.py` file is a script that can be used to create a dataset by retrieve tweets from various twitter users. For this specific example, I loaded my twitter API credentials onto a seperate file called `cred.py`. Custom twitter credentials will be needed if you decide to run this code for your purposes. Data is aggregated onto a .csv file. For later classification, I added a `relevant` column that was either a 1 or 0 depending if the tweet was relevant to the topics I wanted to classify for. Irrelevant tweets usually were short replies between users.  
 
 In my implimitation, the `script.py` file cleans the data and runs LDA. The `csv_to_words()` function grabs each row in the csv file and parses the raw data into a usable format. The `remove_stopwords()` function removes stopwords. The `get_bigrams()` function converts the cleaned data into bigrams where commonly paired words are put together and treated as one.  
 

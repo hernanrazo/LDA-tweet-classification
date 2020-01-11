@@ -40,8 +40,7 @@ def get_tweets(twitter_api, username):
 
 def main():
 
-    #supply users here
-    
+    #supply users here 
     usernames=[]
 
     #get api
