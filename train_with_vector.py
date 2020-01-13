@@ -164,7 +164,6 @@ print('Logistic regression SGD f1: ' + str(f1_score(y_test, y_pred_huber, averag
 
 print('\n')
 print('Summary: ')
-print('ncmamor table:')
-print(m_table)
-print('chi-squared: ', + chi2)
+print('ncmamor table: ', m_table)
+print('chi-squared: ',  chi2)
 print('p-value: ', p)
