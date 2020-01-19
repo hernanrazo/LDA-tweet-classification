@@ -49,9 +49,13 @@ def main():
     train_id2word = pd.read_pickle('saved_pickles_models/train_id2word.pkl')
     train_corpus = pd.read_pickle('saved_pickles_models/train_corpus.pkl')
     model = pd.read_pickle('saved_pickles_models/lda_model.model')
+
+    #set scaler
+    scaler = StandardScaler()
+
+    #set vectors that will be used later
     feature_vectors = []
     test_vectors = []
-    scaler = StandardScaler()
 
 
     #get distributions from every tweet in train_data
