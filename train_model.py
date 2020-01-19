@@ -34,9 +34,8 @@ def get_bigram(words, bi_min=15, tri_min=10):
 def main():
     #set vars, logging, and open csv file
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
-    tweet_list = []
     print('Opening file...')
-    csv_file = open('tweet_data.csv')
+    csv_file = open('data/tweet_data.csv')
     data = csv.reader(csv_file)
 
     print('Cleaning data...')

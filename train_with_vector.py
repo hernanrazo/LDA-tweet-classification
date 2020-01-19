@@ -54,8 +54,6 @@ def main():
     scaler = StandardScaler()
 
 
-
-
     #get distributions from every tweet in train_data
     print('Getting distribution...')
     for i in range(len(train_data)):
@@ -78,24 +76,22 @@ def main():
         x_train_scale = scaler.fit_transform(x_train)
         x_val_scale = scaler.transform(x_val)
 
-
+        #logistic regression
         log_reg_train = LogisticRegression(class_weight='balanced',
                                      solver='newton-cg',
                                      fit_intercept=True).fit(x_train_scale, y_train)
-
         log_reg_train_y_pred = log_reg_train.predict(x_val_scale)
         log_res_train_f1.append(f1_score(y_val, log_reg_train_y_pred, average='binary'))
 
-
+        #loss=log
         sgd = linear_model.SGDClassifier(max_iter=1000,
                                         tol=1e-3, 
                                         loss='log',
                                         class_weight='balanced').fit(x_train_scale, y_train)
-
         sgd_y_pred = sgd.predict(x_val_scale)
         log_res_sgd_train_f1.append(f1_score(y_val, sgd_y_pred, average='binary'))
 
-
+        #modified huber
         sgd_huber = linear_model.SGDClassifier(max_iter=1000,
                                                tol=1e-3, alpha=20,
                                                loss='modified_huber',
@@ -126,26 +122,25 @@ def main():
     y_test = np.array(test_data.relevant)
     x_fit = scaler.fit_transform(x_test)
 
+    #logistic regression
     log_reg_test = LogisticRegression(class_weight='balanced',
                                       solver='newton-cg',
                                       fit_intercept=True).fit(x_fit, y_test)
-
     y_pred_log_res_test = log_reg_test.predict(x_test)
 
-
-    sgd_huber = linear_model.SGDClassifier(max_iter=1000,
+    #modified huber
+    sgd_huber_test = linear_model.SGDClassifier(max_iter=1000,
                                            tol=1e-3,
                                            alpha=20,
                                            loss='modified_huber',
                                            class_weight='balanced',shuffle=True).fit(x_fit, y_test)
+    y_pred_huber_test = sgd_huber_test.predict(x_fit)
 
-    y_pred_huber = sgd_huber.predict(x_fit)
-
-
+    #print results for both cases
     print('Calculating Summary...')
     y_target = y_test
     y_model1 = y_pred_log_res_test
-    y_model2 = y_pred_huber
+    y_model2 = y_pred_huber_test
 
     m_table = mcnemar_table(y_target=y_test,
                             y_model1=y_model1,
@@ -163,7 +158,7 @@ def main():
     print('\n')
     print('Results from using unseen test data:')
     print('Logistic regression Val f1: ' + str(f1_score(y_test, y_pred_log_res_test, average='binary')))
-    print('Logistic regression SGD f1: ' + str(f1_score(y_test, y_pred_huber, average='binary')))
+    print('Logistic regression SGD f1: ' + str(f1_score(y_test, y_pred_huber_test, average='binary')))
 
     print('\n')
     print('Summary: ')
@@ -172,13 +167,18 @@ def main():
     print('p-value: ', p)
 
 
-    #Save feature vector for later use
+    #Save feature vector and huber classifier for later use
     print('\n')
     print('Saving feature vector...')
     save_vector = open('saved_pickles_models/feature_vector.pkl', 'wb')
     pickle.dump(feature_vectors, save_vector)
     save_vector.close()
 
+    print('\n')
+    print('Saving the huber classifier...')
+    save_huber = open('saved_pickles_models/huber_classifier.pkl', 'wb')
+    pickle.dump(sgd_huber, save_huber)
+    save_huber.close()
     print('done')
 
 if __name__ == "__main__":
