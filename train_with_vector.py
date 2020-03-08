@@ -119,7 +119,7 @@ def main():
     print('Starting classification algorithm calculations on testing data...')
     for i in range(len((test_data.tweet))):
         top_topics = model.get_document_topics(test_corpus[i], minimum_probability=0.0)
-        topic_vector = [top_topics[i][1] for i in range(15)]
+        topic_vector = [top_topics[i][1] for i in range(10)]
         test_vectors.append(topic_vector)
 
     x_test = np.array(test_vectors)

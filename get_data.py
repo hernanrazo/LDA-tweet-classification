@@ -23,7 +23,7 @@ def get_api():
 #get tweets from twitter users using a list of their screen names
 def get_tweets(twitter_api, username):
 
-    output = 'data/test_tweet_data.csv'
+    output = 'data/train_data.csv'
     number_of_tweets = 2000
     tweet_list = []
 
@@ -41,17 +41,7 @@ def get_tweets(twitter_api, username):
 def main():
 
     #supply users here 
-    usernames=['mmitchell_ai', 
-               'timnitGebru', 
-               'jennwvaughan', 
-               'SebastienBubeck',
-               'ilyaraz2',
-               'thegautamkamath',
-               'AnimaAnandkumar',
-               'zacharylipton',
-               'tdietterich',
-               'GaryMarcus',
-               'jeremyphoward']
+    usernames=[]
 
     #get api
     api = get_api()
@@ -61,7 +51,6 @@ def main():
             print('Currently on ' + user)
             get_tweets(api, user)
     except:
-        pass
         print('error with: ' + user + ' moving to next user...')
 
 if __name__ == "__main__":

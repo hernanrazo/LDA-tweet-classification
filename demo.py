@@ -8,7 +8,6 @@ from nltk.tokenize import word_tokenize
 from nltk.stem.wordnet import WordNetLemmatizer
 from nltk.corpus import stopwords
 from sklearn.preprocessing import StandardScaler
-from sklearn import linear_model
 
 
 #set stopwords
