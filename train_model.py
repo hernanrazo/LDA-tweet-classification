@@ -1,27 +1,32 @@
+import re
 import pickle
-import csv
 import logging
 import warnings
+import pandas as pd
 import gensim
 import nltk
+from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 
-#set stopwords
+nltk.download('punkt')
+nltk.download('stopwords')
+
+#set stopword
 stop_words = nltk.corpus.stopwords.words('english')
-custom = ['?','(', ')', '.', '[', ']','!', '...', '-', '@', '->','https',
-        ';', "`", "'", '"',',', ':', '*', '~' , '/', '//', '\\', '&', 'n', ':\\']
+custom = ['?','(', ')', '.', '[', ']','!', '...', '-', '@', '->', 'https', 'http',
+        ';', "`", "'", '"',',', '``', "''", ':', '*', '~' , '/', '//', '\\', '&', 'n', ':\\']
 stop_words.extend(custom)
 
 
-#process csv content to a list
-def csv_to_words(raw_data):
-    for row in raw_data:
-        yield(gensim.utils.simple_preprocess(str(row), deacc=True))
-
-
-#remove stopwords
-def remove_stopwords(processed_data):
-    return [[words for words in gensim.utils.simple_preprocess(str(doc)) if not words in stop_words] for doc in processed_data]
+def clean_status(data):
+    remove_mentions = re.sub(r'@[A-Za-z0-9]+', '', data)
+    remove_links = re.sub('https?://[A-Za-z0-9./]+', '', remove_mentions, flags=re.MULTILINE)
+    remove_bitly_links = re.sub(r'bit.ly/\S+', '', remove_links)
+    remove_non_ascii = re.sub(r'[^\x00-\x7F]+', '', remove_bitly_links)
+    set_lowercase = remove_non_ascii.lower()
+    token = word_tokenize(set_lowercase)
+    filtered = [words for words in token if not words in stop_words]
+    return filtered
 
 
 #convert words into bigrams
@@ -35,18 +40,18 @@ def main():
     #set vars, logging, and open csv file
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
     print('Opening file...')
-    csv_file = open('data/tweet_data.csv')
-    data = csv.reader(csv_file)
+    train_data = pd.read_csv('data/train_data.csv', encoding='ISO-8859-1')
+    status_list = []
 
-    print('Cleaning data...')
-    #gather all tweets and apply the clean_data() and get_bigram() functions
-    processed_tweets = list(csv_to_words(data))
-    cleaned_tweets = remove_stopwords(processed_tweets)
-    bigrams= get_bigram(cleaned_tweets)
-    bigram = [bigrams[tweet] for tweet in cleaned_tweets]
+    for row in train_data['tweets']:
+        cleaned_status = clean_status(row)
+        status_list.append(cleaned_status)
+    bigrams = get_bigram(status_list)
+    bigram = [bigrams[entry] for entry in status_list]
     id2word = gensim.corpora.Dictionary(bigram)
     id2word.compactify()
     corpus = [id2word.doc2bow(tweets) for tweets in bigram]
+
 
     print('Training model...')
     print('\n')
@@ -58,7 +63,7 @@ def main():
     #print list of topics
     print('\n')
     print('Geting topics...')
-    lda_model.print_topics(15, num_words=15)[:15]
+    lda_model.print_topics(10, num_words=10)[:10]
     print('\n')
 
 
