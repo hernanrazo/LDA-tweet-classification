@@ -68,22 +68,25 @@ def main():
 
 
     #save everything
-    print('Saving everything...')
-    bigram_save = open('train_bigram.pkl', 'wb')
+    print('Saving bigrams...')
+    bigram_save = open('bigram.pkl', 'wb')
     pickle.dump(bigram, bigram_save)
-    bigram_out.close()
+    bigram_save.close()
 
-    id2word_save = open('train_id2word.pkl', 'wb')
+    print('Saving id2word...')
+    id2word_save = open('id2word.pkl', 'wb')
     pickle.dump(id2word, id2word_save)
-    id2word_out.close()
+    id2word_save.close()
 
-    corpus_save = open('train_corpus.pkl', 'wb')
+    print('Saving corpus...')
+    corpus_save = open('corpus.pkl', 'wb')
     pickle.dump(corpus, corpus_save)
-    corpus_out.close()
+    corpus_save.close()
 
-    model_save = open('lda_model.model', 'wb')
+    print('Saving model...')
+    model_save = open('lda_model2.model', 'wb')
     pickle.dump(lda_model, model_save)
-    model_out.close()
+    model_save.close()
     print('Done')
 
 if __name__ == "__main__":
