@@ -1,3 +1,4 @@
+import re
 import pickle
 import warnings
 import csv
@@ -5,6 +6,8 @@ import numpy as np
 import pandas as pd
 import gensim
 import nltk
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from sklearn import linear_model
 from sklearn.metrics import f1_score
@@ -30,9 +33,15 @@ def csv_to_words(raw_data):
 
 
 #remove stopwords
-def remove_stopwords(processed_data):
-    return [[words for words in gensim.utils.simple_preprocess(str(doc)) if not words in stop_words] for doc in processed_data]
-
+def clean_status(processed_data):
+    remove_mentions = re.sub(r'@[A-Za-z0-9]+', '', processed_data)
+    remove_links = re.sub('https?://[A-Za-z0-9./]+', '', remove_mentions, flags=re.MULTILINE)
+    remove_bitly_links = re.sub(r'bit.ly/\S+', '', remove_links)
+    remove_non_ascii = re.sub(r'[^\x00-\x7F]+', '', remove_bitly_links)
+    set_lowercase = remove_non_ascii.lower()
+    token = word_tokenize(set_lowercase)
+    filtered = [words for words in token if not words in stop_words]
+    return filtered
 
 #convert words into bigrams
 def get_bigram(words, bi_min=15, tri_min=10):
@@ -43,26 +52,25 @@ def get_bigram(words, bi_min=15, tri_min=10):
 
 def main():
     #open needed files
-    test_data = pd.read_csv('data/test_tweet_data.csv', encoding='ISO-8859-1')
-    train_data = pd.read_csv('data/tweet_data_copy.csv', encoding='ISO-8859-1')
-    train_bigram = pd.read_pickle('saved_pickles_models/train_bigram.pkl')
-    train_id2word = pd.read_pickle('saved_pickles_models/train_id2word.pkl')
-    train_corpus = pd.read_pickle('saved_pickles_models/train_corpus.pkl')
-    model = pd.read_pickle('saved_pickles_models/lda_model.model')
+    test_data = pd.read_csv('data/test_data.csv', encoding='ISO-8859-1')
+    train_data = pd.read_csv('data/train_data.csv', encoding='ISO-8859-1')
+    train_bigram = pd.read_pickle('saved_pickles_models/bigram.pkl')
+    train_id2word = pd.read_pickle('saved_pickles_models/id2word.pkl')
+    train_corpus = pd.read_pickle('saved_pickles_models/corpus.pkl')
+    model = pd.read_pickle('saved_pickles_models/lda_model2.model')
 
-    #set scaler
     scaler = StandardScaler()
-
-    #set vectors that will be used later
+    test_data_list = []
     feature_vectors = []
     test_vectors = []
 
 
     #get distributions from every tweet in train_data
     print('Getting distribution...')
+
     for i in range(len(train_data)):
         train_top_topics = model.get_document_topics(train_corpus[i], minimum_probability=0.0)
-        train_topic_vector = [train_top_topics[i][1] for i in range(15)]
+        train_topic_vector = [train_top_topics[i][1] for i in range(10)]
         feature_vectors.append(train_topic_vector)
 
     x = np.array(feature_vectors)
@@ -109,15 +117,16 @@ def main():
 
     #gather all test tweets and apply the clean_data() and get_bigram() functions
     print('Cleaning testing data...')
-    processed_tweets = list(csv_to_words(test_data.tweet))
-    cleaned_tweets = remove_stopwords(processed_tweets)
-    bigrams= get_bigram(cleaned_tweets)
-    test_bigram = [bigrams[tweet] for tweet in cleaned_tweets]
-    test_corpus = [train_id2word.doc2bow(tweet) for tweet in test_bigram]
+    for row in test_data['tweets']:
+        cleaned_status = clean_status(row)
+        test_data_list.append(cleaned_status)
+    bigrams = get_bigram(test_data_list)
+    test_bigram = [bigrams[entry] for entry in test_data_list]
+    test_corpus = [train_id2word.doc2bow(tweets) for tweets in test_bigram]
 
     #test model on testing data
     print('Starting classification algorithm calculations on testing data...')
-    for i in range(len((test_data.tweet))):
+    for i in range(len((test_data))):
         top_topics = model.get_document_topics(test_corpus[i], minimum_probability=0.0)
         topic_vector = [top_topics[i][1] for i in range(10)]
         test_vectors.append(topic_vector)
@@ -134,10 +143,10 @@ def main():
 
     #modified huber
     sgd_huber_test = linear_model.SGDClassifier(max_iter=1000,
-                                           tol=1e-3,
-                                           alpha=20,
-                                           loss='modified_huber',
-                                           class_weight='balanced',shuffle=True).fit(x_fit, y_test)
+                                                tol=1e-3,
+                                                alpha=20,
+                                                loss='modified_huber',
+                                                class_weight='balanced',shuffle=True).fit(x_fit, y_test)
     y_pred_huber_test = sgd_huber_test.predict(x_fit)
 
     #print results for both cases
@@ -185,5 +194,5 @@ def main():
     save_huber.close()
     print('done')
 
-if __name__ == "__main__":
+if __name__ == "__main__": 
     main()

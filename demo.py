@@ -37,9 +37,9 @@ def clean_tweet(raw_tweet):
 
 def main():
     #retrieve saved pickles and model from training
-    model = pd.read_pickle('saved_pickles_models/lda_model.model')
-    train_id2word = pd.read_pickle('saved_pickles_models/train_id2word.pkl')
-    huber_classifier = pd.read_pickle('saved_pickles_models/huber_classifier.pkl')
+    model = pd.read_pickle('saved_pickles_models/lda_model2.model')
+    train_id2word = pd.read_pickle('saved_pickles_models/id2word2.pkl')
+    huber_classifier = pd.read_pickle('saved_pickles_models/huber_classifier2.pkl')
 
     #example tweets
     test1 = 'my machine learning model uses k-means clustering and the data was cleaned using spacy. made by @hrazo7. can be found here https://github.com/hrazo7    🏁'
@@ -64,7 +64,7 @@ def main():
 
         #use saved model and modified huber pickle to predict the topic
         top_topics = model.get_document_topics(test_corpus, minimum_probability=0.0)
-        topic_vector = [top_topics[i][1] for i in range(15)]
+        topic_vector = [top_topics[i][1] for i in range(10)]
         test_vector_list.append(topic_vector)
 
         #take topic vectors and use them to make a prediction
